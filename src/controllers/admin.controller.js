@@ -97,7 +97,7 @@ const registerAdminUser = asyncHandler(async (req, res) => {
 
     if (invalidPermissions.length > 0) {
         console.log(invalidPermissions);
-        
+
         return res
             .status(400)
             .json(new APIResponse(400, { invalidPermissions }, 'Invalid permissions provided.'));
@@ -163,11 +163,12 @@ const loginAdmin = asyncHandler(async (req, res) => {
     // Generate tokens
     const { refreshToken, accessToken } = await genrateAccessAndRefreshToken(admin._id);
 
+    const isProd = process.env.NODE_ENV === 'production';
     // Cookie options
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',  // Enable secure cookies in production
-        sameSite: 'Strict',
+        secure: isProd, // Enable secure cookies in production
+        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
     // Set cookies with appropriate expiration times
@@ -195,11 +196,13 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         { new: true }
     );
 
+    const isProd = process.env.NODE_ENV === 'production';
+
     // Cookie options
     const options = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', // Enable secure cookies in production
-        sameSite: 'Strict', // Prevent CSRF attacks
+        secure: isProd, // Enable secure cookies in production
+        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
     // Clear tokens and send response

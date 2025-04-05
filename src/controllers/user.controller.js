@@ -731,19 +731,24 @@ const getMobileUserMembers = asyncHandler(async (req, res) => {
 const setVerifyUserKey = asyncHandler(async (req, res) => {
     try {
         const user = await User.findById(req.user?._id);
-        if (user?.userKey && user?.verified === true) {
-            return res.status(409).json(new APIResponse(409, {}, 'User Verification Already Done'));
-        } else if (user?.userKey && user.verified === false) {
-            return res.status(403).json(new APIResponse(403, {}, 'Contact Support Team To Verify Account'))
-        }
         const androidId = req.body.androidId;
         if (!androidId) {
             return res.status(400).json(new APIResponse(400, {}, 'Unique Mobile Key Missing'))
         }
+        if (user?.userKey && user?.verified === true) {
+            if (user.userKey === androidId) {
+                return res.status(200).json(new APIResponse(200, {}, 'User Verification Done'));
+            }
+            else {
+                return res.status(401).json(new APIResponse(401, {}, "Invalid User Mobile Key"))
+            }
+        } else if (user?.userKey && user.verified === false) {
+            return res.status(403).json(new APIResponse(403, {}, 'Contact Support Team To Verify Account'))
+        }
 
 
 
-        const uniqueUserKey = user?.mobile + androidId;
+        const uniqueUserKey = androidId;
         user.userKey = uniqueUserKey;
         user.verified = false;
         // Save without triggering `pre('save')`

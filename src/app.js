@@ -17,7 +17,7 @@ const app = express();
 // }));
 const allowedOrigins = [
     process.env.CORS_ORIGIN,  // e.g., "https://yourwebsite.com"
-    "http://localhost",  // For local development
+    "http://localhost:5173",  // For local development
     "http://10.0.2.2",  // Android Emulator (access backend running on localhost)
     "capacitor://localhost",  // For Capacitor-based apps
     "ionic://localhost",  // For Ionic-based apps (if using)
