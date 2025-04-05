@@ -25,7 +25,7 @@ const sendOpt = asyncHandler(async (req, res) => {
         // Simulate sending OTP (Replace with actual SMS logic)
         console.log(`OTP for ${mobile} is: ${otp}`);
 
-        res.status(200).json(new APIResponse(200,{},"OTP sent successfully." ));
+        res.status(200).json(new APIResponse(200,{otp},"OTP sent successfully." ));
     } catch (error) {
         res.status(500).json(new APIResponse(500,{},"Error sending OTP.", error ));
     }
