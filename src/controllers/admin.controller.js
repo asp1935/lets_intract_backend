@@ -197,11 +197,12 @@ const logoutAdmin = asyncHandler(async (req, res) => {
     );
 
     const isProd = process.env.NODE_ENV === 'production';
-
+    console.log(isProd);
+    
     // Cookie options
     const options = {
         httpOnly: true,
-        secure: isProd, // Enable secure cookies in production
+        secure: false, // Enable secure cookies in production
         sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
