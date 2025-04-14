@@ -14,6 +14,10 @@ const EnquirySchema = new Schema({
         index: true,
 
     },
+    password:{
+        type:String,
+        required:true
+    },
     mobile: {
         type: String,
         required: true,

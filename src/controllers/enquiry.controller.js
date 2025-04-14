@@ -2,20 +2,46 @@ import { isValidObjectId } from "mongoose";
 import { Enquiry } from "../models/enquiry.model.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
+import { Otp } from "../models/otp.model.js";
 
 const addEnquiry = asyncHandler(async (req, res) => {
-    const { name, mobile, email, state, district, taluka } = req.body;
-    if ([name, email, state, district, taluka,].some(field => field.trim() === '')) {
-        return res.status(400).json(new APIResponse(400, {}, 'All Fileds Are Required'));
+    const { name, mobile, email, state, district, taluka, password, cpassword, otp } = req.body;
+    if ([name, email, state, district, taluka, password, cpassword, otp].some(field => String(field || '').trim() === '')) {
+        return res.status(400).json(new APIResponse(400, {}, 'All fields are required'));
     }
     if (!/^[0-9]{10}$/.test(mobile)) {
         return res.status(400).json(new APIResponse(400, {}, 'Mobile Invalid Mobile No'))
+    }
+    if (password !== cpassword) {
+        return res.status(400).json(new APIResponse(400, {}, "Password and confirm password must be the same."))
     }
     //check email already exist
     const existingEnquiry = await Enquiry.exists({ $or: [{ email }, { mobile }] });
     if (existingEnquiry) {
         return res.status(409).json(new APIResponse(409, {}, 'Registration Already Done Support Team Connect you as soon as Possible'));
     }
+    // Verify OTP
+    const otpRecord = await Otp.findOne({ mobile });
+
+    // Check if OTP record exists
+    if (!otpRecord) {
+        return res.status(400).json(new APIResponse(400, {}, 'OTP not found. Please request a new one.'));
+    }
+
+    // Check if the provided OTP is correct
+    if (otpRecord.otp !== otp) {
+        return res.status(400).json(new APIResponse(400, {}, 'Invalid OTP.'));
+    }
+
+    // Check if the OTP is expired
+    if (otpRecord.expiresAt < new Date()) {
+        await Otp.deleteOne({ mobile });  // Remove expired OTP from DB
+        return res.status(400).json(new APIResponse(400, {}, 'OTP expired.'));
+    }
+
+    // OTP verified, delete OTP from DB after successful verification
+    await Otp.deleteOne({ mobile });
+    
     //store into db
     const enquiry = await Enquiry.create({
         name,
@@ -24,6 +50,7 @@ const addEnquiry = asyncHandler(async (req, res) => {
         state,
         district,
         taluka,
+        password
     });
     if (!enquiry) {
         return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Submitting Enquriy"))
@@ -75,17 +102,17 @@ const updateEnquiry = asyncHandler(async (req, res) => {
     }
 });
 
-const getAllEnquiries=asyncHandler(async(req,res)=>{
-    const {id}=req.params;
-    if(id && !isValidObjectId(id)){
-        return res.status(400).json(new APIResponse(400,{},"Invalid Id"))
+const getAllEnquiries = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    if (id && !isValidObjectId(id)) {
+        return res.status(400).json(new APIResponse(400, {}, "Invalid Id"))
     }
-    const whereCondition=id?{_id:id}:{};
-    const enquires=await Enquiry.find(whereCondition);
-    if(!enquires || enquires.length===0){
-        return res.status(200).json(new APIResponse(200,{},'Enquires Not Available'))
+    const whereCondition = id ? { _id: id } : {};
+    const enquires = await Enquiry.find(whereCondition);
+    if (!enquires || enquires.length === 0) {
+        return res.status(200).json(new APIResponse(200, {}, 'Enquires Not Available'))
     }
-    return res.status(200).json(new APIResponse(200,enquires,"Enquires Fetched Successfully"));
+    return res.status(200).json(new APIResponse(200, enquires, "Enquires Fetched Successfully"));
 })
 
 export {

@@ -15,7 +15,7 @@ const portfolioStorage = multer.diskStorage({
 
       // Use the user folder for storing files
       cb(null, userFolder);
-    } catch (error) {
+    } catch (error) {        
       cb(error); // Handle errors if folder creation fails
     }
   },

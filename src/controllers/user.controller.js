@@ -32,7 +32,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const { name, email, mobile, state, district, taluka, type = "business", password, otp } = req.body;
 
     // Validate required fields
-    if ([name, email, state, district, taluka, password, type, otp].some(field => field.trim() === '')) {
+    if ([name, email, state, district, taluka, password, type, otp].some(field => String(field || '').trim() === '')) {
         return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
     }
 
@@ -766,7 +766,7 @@ const setVerifyUserKey = asyncHandler(async (req, res) => {
 const loginMobileUser = asyncHandler(async (req, res) => {
     const { mobile, password } = req.body;
 
-    if (!mobile || !password) {
+     if (!mobile || !password) {
         return res.status(400).json(new APIResponse(400, {}, 'Mobile & Password Is Required!!!'));
     }
     const user = await User.findOne({ mobile });
@@ -774,8 +774,8 @@ const loginMobileUser = asyncHandler(async (req, res) => {
     if (!user) {
         return res.status(404).json(new APIResponse(404, {}, 'Account Not Found!!!'));
     }
-
-    const isPasswordValid = await user.isPasswordCorrect(password);
+    
+    const isPasswordValid = await user.isPasswordCorrect((password).toString());
 
     if (!isPasswordValid) {
         return res.status(401).json(new APIResponse(401, {}, 'Invalid Password!!!'))

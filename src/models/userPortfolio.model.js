@@ -12,7 +12,7 @@ const userPortfolioSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        index:true,
+        index: true,
     },
     name: {
         type: String,
@@ -46,6 +46,11 @@ const userPortfolioSchema = new Schema({
     },
     theme: {
         type: String
+    },
+    socialLinks: {
+        whatsapp: { type: String },
+        instagram: { type: String },
+        facebook: { type: String },
     },
     services: [
         {

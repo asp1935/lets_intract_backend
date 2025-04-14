@@ -1,6 +1,6 @@
 import { Router } from "express";
 // import { body } from "express-validator";
-import { authAdmin, authAllUserRole, authUser, verifyJWT, verifyJWTUser } from "../middleware/auth.middleware.js";
+import { authAdmin, authAllUserRole, authorize, authUser, verifyJWT, verifyJWTUser } from "../middleware/auth.middleware.js";
 import { addBulkMembers, addSingleMember, deleteUser, deleteUserAllMember, deleteUserKey, getCurrentMobileUser, getUser, getUserMembers, loginMobileUser, logoutMobileUser, registerUser, setVerifyUserKey, updateVerification, updateMember, updatePassword, updateUser, getMobileUserMembers, getUserDetails } from "../controllers/user.controller.js";
 import { upload } from "../middleware/multer.middleware.js";
 import { verifyLimiter } from "../middleware/otp.middleware.js";
@@ -21,27 +21,27 @@ router.get('/', (req, res) => {
     return res.status(200).json({ statusCode: 200, message: 'User Route Working' });
 })
 
-router.route('/register-user').post(verifyJWT, verifyLimiter, registerUser);
-router.route('/update-user/:id').patch(verifyJWT, updateUser);
-router.route('/get-user-members/:userId').get(verifyJWT, getUserMembers);
-router.route('/get-user-details/:id?').get(verifyJWT, authAdmin, getUserDetails);
+router.route('/register-user').post(verifyJWT,authorize(['political','business']) ,verifyLimiter, registerUser);
+router.route('/update-user/:id').patch(verifyJWT,authorize(['political','business']), updateUser);
+router.route('/get-user-members/:userId').get(verifyJWT,authorize(['political','business']), getUserMembers);
+router.route('/get-user-details/:id?').get(verifyJWT, authorize(['political','business']), getUserDetails);
 
 
-router.route('/add-bulk-member').post(verifyJWT, upload.single('memberList'), addBulkMembers)
-router.route('/add-member/:userId').post(verifyJWT, addSingleMember);
-router.route('/update-member/:id').patch(verifyJWT, updateMember);
-router.route('/delete-user-members/:userId').delete(verifyJWT, deleteUserAllMember);
+router.route('/add-bulk-member').post(verifyJWT,authorize(['political','business']), upload.single('memberList'), addBulkMembers)
+router.route('/add-member/:userId').post(verifyJWT,authorize(['political','business']), addSingleMember);
+router.route('/update-member/:id').patch(verifyJWT,authorize(['political','business']), updateMember);
+router.route('/delete-user-members/:userId').delete(verifyJWT,authorize(['political','business']), deleteUserAllMember);
 
 
-router.route('/update-password/:id').patch(verifyJWT, updatePassword);
-router.route('/delete-user/:id').delete(verifyJWT, deleteUser);
+router.route('/update-password/:id').patch(verifyJWT,authorize(['political','business']), updatePassword);
+router.route('/delete-user/:id').delete(verifyJWT,authorize(['political','business']), deleteUser);
 // router.route('/get-user').get(verifyJWT,getAllUsers);
 // router.route('/get-single-usermember/:id?').get(verifyJWT,getSingleUser);
 // router.route('/get-members').get(verifyJWT,authUser,getAllMembers);
-router.route('/get-user/:id?').get(verifyJWT, getUser);
+router.route('/get-user/:id?').get(verifyJWT,authorize(['political','business']), getUser);
 
-router.route('/update-verification/:id').patch(verifyJWT, updateVerification);  //for user activation
-router.route('/delete-userkey/:id').patch(verifyJWT, deleteUserKey);           //deleting user key and updating status
+router.route('/update-verification/:id').patch(verifyJWT,authorize(['political','business']), updateVerification);  //for user activation
+router.route('/delete-userkey/:id').patch(verifyJWT,authorize(['political','business']), deleteUserKey);           //deleting user key and updating status
 
 //app user routes
 router.route('/register-mobile-user').post(registerUser);

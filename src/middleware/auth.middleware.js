@@ -72,7 +72,8 @@ export const authorize = (requiredPermissions = []) => {
     return (req, res, next) => {
         
         const { role, permissions } = req.admin;
-
+        console.log(permissions,requiredPermissions); 
+        
         if (role === 'superadmin') {
             return next(); // Super admin has unrestricted access
         }

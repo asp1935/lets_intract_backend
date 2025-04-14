@@ -12,7 +12,8 @@ import {
     updatePassword,
     updateAdmin
 } from "../controllers/admin.controller.js";
-import { authAdmin, verifyJWT } from "../middleware/auth.middleware.js";
+import { authAdmin, authorize, verifyJWT } from "../middleware/auth.middleware.js";
+import { USER_PERMISSIONS } from "../utils/Constant.js";
 
 const router = Router();
 
@@ -40,13 +41,13 @@ router.route('/update-admin/:id').patch(verifyJWT, authAdmin, updateAdmin);
 router.route('/delete-admin/:id').delete(verifyJWT, authAdmin, deleteUserAdmin);
 
 // Route to get a list of all Admin Users (only accessible to  Admins)
-router.route('/get-users').get(verifyJWT, authAdmin, getAllAdminUser);
+router.route('/get-users').get(verifyJWT, authorize(USER_PERMISSIONS), getAllAdminUser);
 
 // Route to get the currently authenticated Admin User's details
 router.route('/current-user').get(verifyJWT, currentUser);
 
 // Route to update password (only accessible to  Admins)
-router.route('/current-user').get(verifyJWT, authAdmin,updatePassword);
+router.route('/update-password/:id').patch(verifyJWT, authAdmin,updatePassword);
 
 router.route('/get-user/:id?').get(verifyJWT,authAdmin,getUser);
 router.route('/get-admin-user/:id?').get(verifyJWT,authAdmin,getAdminUsers);

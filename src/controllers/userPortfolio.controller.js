@@ -5,6 +5,7 @@ import { User } from "../models/user.model.js";
 import { UserPortfolio } from "../models/userPortfolio.model.js";
 import crypto from 'crypto';
 import fs from 'fs';
+import { promises as fsp } from 'fs'
 import path from 'path';
 import { fileURLToPath } from "url";
 
@@ -18,13 +19,21 @@ const genrateUsername = (name) => {
 
 const createUserPortfolio = asyncHandler(async (req, res) => {
     try {
-        const { userId, name, ownerName, about, email, mobile, address, theme } = req.body;
+        const { userId, name, ownerName, about, email, mobile, address, theme, socialLinks } = req.body;
 
         const profilePhotoUrl = req.file?.path ? `/public/portfolio/${userId}/${req.file?.filename}` : "";
         if (!profilePhotoUrl) {
             return res.status(400).json(new APIResponse(400, {}, "Profile Photo is Required"));
         }
-        if ([userId, name, ownerName, about, email, address, theme].some(field => field.trim() === '')) {
+        let links = {};
+        if (req.body.socialLinks) {
+            try {
+                links = JSON.parse(req.body.socialLinks);
+            } catch (err) {
+                return res.status(400).json(new APIResponse(400, {}, "Invalid format for socialLinks"));
+            }
+        }
+        if ([userId, name, ownerName, about, email, address, theme].some(field => String(field || '').trim() === '')) {
             fs.unlinkSync(req.file?.path);
             return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
         }
@@ -58,7 +67,7 @@ const createUserPortfolio = asyncHandler(async (req, res) => {
         //  Use upsert to insert if not exists, otherwise update
         const portfolio = await UserPortfolio.create(
             {
-                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl
+                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl, socialLinks: links
             },
         );
 
@@ -77,7 +86,7 @@ const updateUserPortfolio = asyncHandler(async (req, res) => {
             return res.status(400).json(new APIResponse(400, {}, "Invalid Portfolio ID"));
         }
 
-        const { userName, name, ownerName, about, email, mobile, address, theme } = req.body;
+        const { userName, name, ownerName, about, email, mobile, address, theme, socialLinks } = req.body;
 
         if ([userName, name, ownerName, about, email, address, theme].some(field => field?.trim() === '')) {
             return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
@@ -101,8 +110,8 @@ const updateUserPortfolio = asyncHandler(async (req, res) => {
         const portfolio = await UserPortfolio.findByIdAndUpdate(
             portfolioId,
             {
-                userName: userName.toLowerCase(), 
-                name, ownerName, about, email, mobile, address, theme
+                userName: userName.toLowerCase(),
+                name, ownerName, about, email, mobile, address, theme, socialLinks
             },
             { new: true }
         );
@@ -117,6 +126,43 @@ const updateUserPortfolio = asyncHandler(async (req, res) => {
         return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'));
     }
 });
+
+const updateUserProfile = asyncHandler(async (req, res) => {
+    try {
+        const pid = req.params.pid;
+        const { userId } = req.body
+
+        if (!pid || !isValidObjectId(pid)) {
+            return res.status(400).json(new APIResponse(400, {}, "Invalid Portfolio Id"))
+        }
+
+        const portfolio = await UserPortfolio.findById(pid);
+
+        if (!portfolio) {
+            return res.status(404).json(new APIResponse(404, {}, 'Portfolio Not Found'))
+        }
+
+        const newProfilePhotoUrl = req.file?.path ? `/public/portfolio/${userId}/${req.file?.filename}` : "";
+        if (!newProfilePhotoUrl) {
+            return res.status(400).json(new APIResponse(400, {}, "Profile Photo is Required"));
+        }
+        // Delete file if it exists
+        if (portfolio.profilePhotoUrl) {
+            const filePath = path.join(__dirname, "..", "..", portfolio.profilePhotoUrl);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+        portfolio.profilePhotoUrl = newProfilePhotoUrl;
+        portfolio.save();
+
+        return res.status(200).json(new APIResponse(200, portfolio, "Profile Picture Updated Successfully"));
+
+    } catch (error) {
+        return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
+
+    }
+})
 
 
 const addPortfolioServices = asyncHandler(async (req, res) => {
@@ -141,12 +187,11 @@ const addPortfolioServices = asyncHandler(async (req, res) => {
 
         const portfolio = await UserPortfolio.findByIdAndUpdate(id, {
             $push: { services: formattedServices }
-        })
+        }, { new: true })
 
         return res.status(200).json(new APIResponse(200, portfolio, "Services Added Successfully"))
 
     } catch (error) {
-        console.log(error);
         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
     }
 });
@@ -168,10 +213,12 @@ const addPortfolioClient = asyncHandler(async (req, res) => {
             return res.status(400).json(new APIResponse(400, {}, "All Clients array is required"));
         }
 
+
         // Ensure req.files is used for multiple uploads
         if (!req.files || req.files.length === 0) {
             return res.status(400).json(new APIResponse(400, {}, "All Client logos are required"));
         }
+
         if (clients.length !== req.files.length) {
             return res.status(400).json(new APIResponse(400, {}, "All Client Name & Logo Required"))
         }
@@ -204,8 +251,6 @@ const addPortfolioClient = asyncHandler(async (req, res) => {
         return res.status(200).json(new APIResponse(200, portfolio, "Client Added Successfully"))
 
     } catch (error) {
-        console.log(error);
-
         return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'));
     }
 });
@@ -214,7 +259,6 @@ const addPortfolioGallery = asyncHandler(async (req, res) => {
     try {
         const { id } = req.params;
         const gallery = JSON.parse(req.body.gallery);
-
 
         if (!id || !isValidObjectId(id)) {
             return res.status(400).json(new APIResponse(400, {}, "Invalid ID"));
@@ -261,7 +305,6 @@ const addPortfolioGallery = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new APIResponse(200, updatedPortfolio, "Gallery Items Added Successfully"));
     } catch (error) {
-        console.log(error);
         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
     }
 });
@@ -333,7 +376,6 @@ const getPortfolio = asyncHandler(async (req, res) => {
             return res.status(200).json(new APIResponse(200, portfolios, "Portfolio Fetched Successfully"));
         }
     } catch (error) {
-        console.log(error);
         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
     }
 })
@@ -349,18 +391,57 @@ const getUserPortfolio = asyncHandler(async (req, res) => {
         }
         return res.status(200).json(new APIResponse(200, portfolio, 'Portfolio Fetched'))
     } catch (error) {
-        console.log(error);
         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
     }
-})
+});
+
+const deletePortfolio = asyncHandler(async (req, res) => {
+    try {
+        const portfolioId = req.params.pid;
+
+        if (!portfolioId || !isValidObjectId(portfolioId)) {
+            return res.status(400).json(new APIResponse(400, {}, "Invalid Portfolio Id"))
+        }
+        const portfolio = await UserPortfolio.findById(portfolioId);
+        if (!portfolio) {
+            return res.status(404).json(new APIResponse(404, {}, 'Portfolio Already Deleted'))
+        }
+        const folderPath = path.join(__dirname, '..', '..', 'public', 'portfolio', (portfolio.userId).toString())
+
+        try {
+            // Check if folder exists
+            await fsp.access(folderPath);
+            // If no error, folder exists — delete it
+            await fsp.rm(folderPath, { recursive: true, force: true });
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                console.log('Folder does not exist, skipping delete.');
+                return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'))
+
+            } else {
+                console.log('asdsad', err);
+                return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'))
+
+            }
+        }
+        await UserPortfolio.findByIdAndDelete(portfolioId)
+        return res.status(200).json(new APIResponse(200, {}, "Portfolio Deleted Successfully"))
+
+    } catch (error) {
+        return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'))
+    }
+});
+
 
 export {
     createUserPortfolio,
     updateUserPortfolio,
+    updateUserProfile,
     addPortfolioServices,
     addPortfolioClient,
     addPortfolioGallery,
     deletePortfolioItem,
     getPortfolio,
-    getUserPortfolio
+    getUserPortfolio,
+    deletePortfolio
 }
