@@ -10,7 +10,7 @@ router.get('/',(req,res)=>{
 router.route('/add-associate').post(verifyJWT,authorize(['associate']),addAsscociate);  //new associate
 router.route('/update-associate/:id').patch(verifyJWT,authorize(['associate']),updateAssociate);    //update associate details
 router.route('/delete-associate/:id').delete(verifyJWT,authorize(['associate']),deletedAssociate);  //delete associate
-router.route('/get-associate/:id?').get(verifyJWT,authorize(['associate']),getAssociates);  //get all or single assoicate details
+router.route('/get-associate/:id?').get(verifyJWT,authorize(['politician','business','associate']),getAssociates);  //get all or single assoicate details
 router.route('/update-commission').patch(verifyJWT,authAdmin,updateAllAssoCommission);  //update all assoicate Commisson
 router.route('/update-commission/:id').patch(verifyJWT,authAdmin,updateCommission); //update specific associate commission
 router.route('/update-referral-zero/:id').patch(verifyJWT,authAdmin,updateReferralCountZero);   //set temp referral zero

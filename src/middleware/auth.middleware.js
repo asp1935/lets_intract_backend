@@ -72,9 +72,8 @@ export const authorize = (requiredPermissions = []) => {
     return (req, res, next) => {
         
         const { role, permissions } = req.admin;
-        console.log(permissions,requiredPermissions); 
         
-        if (role === 'superadmin') {
+        if (role === 'superadmin' || role==='admin') {
             return next(); // Super admin has unrestricted access
         }
 
@@ -84,11 +83,12 @@ export const authorize = (requiredPermissions = []) => {
             }
             return next(); // Admin has all other access
         }
-
+         
         if (role === 'user') {
-            const hasPermissions = requiredPermissions.every((permission) =>
+            const hasPermissions = requiredPermissions.some((permission) =>
                 permissions.includes(permission)
             );
+            
             if (!hasPermissions) {
                 return handleError(res, 403, 'Access Denied. Require Permission to Access!!!');
             }

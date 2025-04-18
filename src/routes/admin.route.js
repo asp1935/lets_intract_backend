@@ -41,16 +41,17 @@ router.route('/update-admin/:id').patch(verifyJWT, authAdmin, updateAdmin);
 router.route('/delete-admin/:id').delete(verifyJWT, authAdmin, deleteUserAdmin);
 
 // Route to get a list of all Admin Users (only accessible to  Admins)
-router.route('/get-users').get(verifyJWT, authorize(USER_PERMISSIONS), getAllAdminUser);
+router.route('/get-users').get(verifyJWT, authorize(['business', 'politician','staff']), getAllAdminUser);
 
 // Route to get the currently authenticated Admin User's details
 router.route('/current-user').get(verifyJWT, currentUser);
 
 // Route to update password (only accessible to  Admins)
-router.route('/update-password/:id').patch(verifyJWT, authAdmin,updatePassword);
+router.route('/update-password/:id').patch(verifyJWT, authAdmin, updatePassword);
 
-router.route('/get-user/:id?').get(verifyJWT,authAdmin,getUser);
-router.route('/get-admin-user/:id?').get(verifyJWT,authAdmin,getAdminUsers);
+router.route('/get-user/:id?').get(verifyJWT, authorize(['politician', 'business', 'staff']), getUser);
+
+router.route('/get-admin-user/:id?').get(verifyJWT, authAdmin, getAdminUsers);
 
 
 export default router;

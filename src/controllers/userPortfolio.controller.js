@@ -415,11 +415,9 @@ const deletePortfolio = asyncHandler(async (req, res) => {
             await fsp.rm(folderPath, { recursive: true, force: true });
         } catch (err) {
             if (err.code === 'ENOENT') {
-                console.log('Folder does not exist, skipping delete.');
                 return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'))
 
             } else {
-                console.log('asdsad', err);
                 return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'))
 
             }

@@ -12,7 +12,7 @@ const router = Router();
 //     body("email").notEmpty().withMessage("Email is required").trim().isEmail().withMessage("Invalid Email Address"),
 //     body("mobile").notEmpty().withMessage("Mobile No is required").isMobilePhone("en-IN").withMessage("Invalid Mobile Number"),
 //     body("address").notEmpty().withMessage("Address is Requried"),
-//     body("type").notEmpty().withMessage("User Type is required").toLowerCase().isIn(["business", "political"]).withMessage("User Type must be either 'business' or 'political'"),
+//     body("type").notEmpty().withMessage("User Type is required").toLowerCase().isIn(["business", "politician"]).withMessage("User Type must be either 'business' or 'politician'"),
 //     // body("password").notEmpty().withMessage("Password is Required"),
 // ];
 
@@ -21,27 +21,27 @@ router.get('/', (req, res) => {
     return res.status(200).json({ statusCode: 200, message: 'User Route Working' });
 })
 
-router.route('/register-user').post(verifyJWT,authorize(['political','business']) ,verifyLimiter, registerUser);
-router.route('/update-user/:id').patch(verifyJWT,authorize(['political','business']), updateUser);
-router.route('/get-user-members/:userId').get(verifyJWT,authorize(['political','business']), getUserMembers);
-router.route('/get-user-details/:id?').get(verifyJWT, authorize(['political','business']), getUserDetails);
+router.route('/register-user').post(verifyJWT,authorize(['politician','business']) ,verifyLimiter, registerUser);
+router.route('/update-user/:id').patch(verifyJWT,authorize(['politician','business']), updateUser);
+router.route('/get-user-members/:userId').get(verifyJWT,authorize(['politician','business']), getUserMembers);
+router.route('/get-user-details/:id?').get(verifyJWT, authorize(['politician','business']), getUserDetails);
 
 
-router.route('/add-bulk-member').post(verifyJWT,authorize(['political','business']), upload.single('memberList'), addBulkMembers)
-router.route('/add-member/:userId').post(verifyJWT,authorize(['political','business']), addSingleMember);
-router.route('/update-member/:id').patch(verifyJWT,authorize(['political','business']), updateMember);
-router.route('/delete-user-members/:userId').delete(verifyJWT,authorize(['political','business']), deleteUserAllMember);
+router.route('/add-bulk-member').post(verifyJWT,authorize(['politician','business']), upload.single('memberList'), addBulkMembers)
+router.route('/add-member/:userId').post(verifyJWT,authorize(['politician','business']), addSingleMember);
+router.route('/update-member/:id').patch(verifyJWT,authorize(['politician','business']), updateMember);
+router.route('/delete-user-members/:userId').delete(verifyJWT,authorize(['politician','business']), deleteUserAllMember);
 
 
-router.route('/update-password/:id').patch(verifyJWT,authorize(['political','business']), updatePassword);
-router.route('/delete-user/:id').delete(verifyJWT,authorize(['political','business']), deleteUser);
+router.route('/update-password/:id').patch(verifyJWT,authorize(['politician','business']), updatePassword);
+router.route('/delete-user/:id').delete(verifyJWT,authorize(['politician','business']), deleteUser);
 // router.route('/get-user').get(verifyJWT,getAllUsers);
 // router.route('/get-single-usermember/:id?').get(verifyJWT,getSingleUser);
 // router.route('/get-members').get(verifyJWT,authUser,getAllMembers);
-router.route('/get-user/:id?').get(verifyJWT,authorize(['political','business']), getUser);
+router.route('/get-user/:id?').get(verifyJWT,authorize(['politician','business']), getUser);
 
-router.route('/update-verification/:id').patch(verifyJWT,authorize(['political','business']), updateVerification);  //for user activation
-router.route('/delete-userkey/:id').patch(verifyJWT,authorize(['political','business']), deleteUserKey);           //deleting user key and updating status
+router.route('/update-verification/:id').patch(verifyJWT,authorize(['politician','business']), updateVerification);  //for user activation
+router.route('/delete-userkey/:id').patch(verifyJWT,authorize(['politician','business']), deleteUserKey);           //deleting user key and updating status
 
 //app user routes
 router.route('/register-mobile-user').post(registerUser);

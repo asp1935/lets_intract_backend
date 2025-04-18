@@ -9,6 +9,7 @@ const userPlanSchema = new Schema({
     endDate: {
         type: Date,
         required: true,
+        index: { expires: 0 }
     },
     usedMsgCount: {
         type: Number,

@@ -96,7 +96,6 @@ const registerAdminUser = asyncHandler(async (req, res) => {
     const invalidPermissions = permissions.filter((perm) => !USER_PERMISSIONS.includes(perm));
 
     if (invalidPermissions.length > 0) {
-        console.log(invalidPermissions);
 
         return res
             .status(400)
@@ -197,8 +196,7 @@ const logoutAdmin = asyncHandler(async (req, res) => {
     );
 
     const isProd = process.env.NODE_ENV === 'production';
-    console.log(isProd);
-    
+
     // Cookie options
     const options = {
         httpOnly: true,
@@ -303,11 +301,12 @@ const currentUser = asyncHandler(async (req, res) => {
 // Fetch All Admin Users 
 const getAllAdminUser = asyncHandler(async (req, res) => {
     // Get the role of the logged-in admin
+    // const { id } = req.params;
     const loggedUserRole = req.admin?.role;
     let users;
 
     // Check role and fetch users accordingly
-    if (loggedUserRole === 'admin') {
+ if (loggedUserRole === 'admin') {
         // Admin can only see 'user' roles
         users = await Admin.find({ role: 'user' });
     } else if (loggedUserRole === 'superadmin') {
@@ -319,9 +318,7 @@ const getAllAdminUser = asyncHandler(async (req, res) => {
         });
     } else {
         // Unauthorized Access
-        return res
-            .status(403)
-            .json(new APIResponse(403, {}, 'Unauthorized Access!!!'));
+        users = await Admin.find({ role: 'user' });
     }
 
     // Check if users were found
@@ -378,11 +375,11 @@ const getUser = asyncHandler(async (req, res) => {
     const loggedUserRole = req.admin?.role;
 
     // Check role and permissions
-    if (loggedUserRole !== 'admin' && loggedUserRole !== 'superadmin') {
-        return res
-            .status(403)
-            .json(new APIResponse(403, {}, 'Unauthorized Access!!!'));
-    }
+    // if (loggedUserRole !== 'admin' && loggedUserRole !== 'superadmin') {
+    //     return res
+    //         .status(403)
+    //         .json(new APIResponse(403, {}, 'Unauthorized Access!!!'));
+    // }
 
     // Define query condition for fetching users
     const whereCondition = id ? { _id: id, role: 'user' } : { role: 'user' };

@@ -1,6 +1,4 @@
 import { isValidObjectId } from "mongoose";
-import { Associate } from "../models/associate.model.js";
-import { Payout } from "../models/payout.model.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { History } from "../models/history.model.js";
@@ -39,38 +37,56 @@ const getAllStaffPayout = asyncHandler(async (req, res) => {
 });
 
 const genrateStaffPayout = asyncHandler(async (req, res) => {
-    // Fetch all associates who are eligible for payout (e.g., referrCount > 0)
-    const staffs = await Admin.find({
-        referralCount: { $gt: 0 },
-        role: "user"
-    });
-
-    if (staffs.length === 0) {
-        return res.status(404).json(new APIResponse(404, {}, "No Staff Found for Payout"));
-    }
-
-    const payouts = [];
-
-    for (const staff of staffs) {
-        const payoutAmount = staff.referralCount * staff.incentive; //  calculation
-
-        // Create payout record
-        const payout = await StaffPayout.create({
-            staffId: staff._id,
-            amount: payoutAmount,
-            incentive: staff.incentive,
-            refCount: staff.referralCount,
-            isPaid: false,
+    try {
+        // Fetch all associates who are eligible for payout
+        const staffs = await Admin.find({
+            referralCount: { $gt: 0 },
+            role: "user"
         });
 
-        // Reset referral count (if needed)
-        await Admin.findByIdAndUpdate(staff._id, { referralCount: 0 });
+        if (!staffs || staffs.length === 0) {
+            return res.status(200).json(new APIResponse(200, {}, "No Staff Found for Payout"));
+        }
 
-        payouts.push(payout);
+        const payouts = [];
+
+        for (const staff of staffs) {
+            if (!staff.incentive || staff.incentive <= 0) continue;
+
+            const payoutAmount = staff.referralCount * staff.incentive;
+
+            try {
+                // Create payout record
+                const payout = await StaffPayout.create({
+                    staffId: staff._id,
+                    amount: payoutAmount,
+                    incentive: staff.incentive,
+                    refCount: staff.referralCount,
+                    isPaid: false,
+                });
+
+                // Reset referral count
+                await Admin.findByIdAndUpdate(staff._id, { referralCount: 0 });
+
+                payouts.push(payout);
+            } catch (err) {
+                console.error(`Error processing payout for staff ${staff._id}:`, err.message);
+                // You can optionally collect and return skipped/failed ones too
+
+            }
+        }
+
+        if (payouts.length === 0) {
+            return res.status(200).json(new APIResponse(200, {}, "No Eligible Staff Found for Payout"));
+        }
+
+        return res.status(201).json(new APIResponse(201, payouts, "Payouts Generated Successfully"));
+    } catch (error) {
+        // console.error("Error generating payouts:", error.message);
+        return res.status(500).json(new APIResponse(500, {}, "Something went wrong while generating payouts"));
     }
-
-    return res.status(201).json(new APIResponse(201, payouts, "Payouts Generated Successfully"));
 });
+
 
 const staffPay = asyncHandler(async (req, res) => {
     const { id } = req.params;

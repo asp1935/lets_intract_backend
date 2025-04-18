@@ -180,7 +180,7 @@ const getStaffReferralUsers = asyncHandler(async (req, res) => {
                             email: "$referredUsers.email",
                             mobile: "$referredUsers.mobile",
                             type: "$referredUsers.type",
-                            type: "$referredUsers.createdAt",
+                            createdAt: "$referredUsers.createdAt",
                             plan: {
                                 _id: "$planDetails._id",
                                 name: "$planDetails.name",

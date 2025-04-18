@@ -177,7 +177,6 @@ const addBulkMembers = asyncHandler(async (req, res) => {
     const existingMembers = await User.find({ userId }, 'mobile');
     existingMembers.forEach(member => existingMobiles.add(member.mobile));
 
-    console.log(csvFilePath);
 
 
     // Read CSV and parse data
@@ -187,7 +186,6 @@ const addBulkMembers = asyncHandler(async (req, res) => {
 
             if (row.name && row.maxAgeobile) {
                 // Check for duplicate mobile number
-                console.log(existingMobiles, row.mobile);
 
                 if (!existingMobiles.has(row.mobile)) {
 
@@ -892,7 +890,6 @@ const getCurrentMobileUser = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new APIResponse(200, user[0], 'User Details Fetched'));
     } catch (error) {
-        console.log(error);
         return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'));
     }
 });
