@@ -764,7 +764,7 @@ const setVerifyUserKey = asyncHandler(async (req, res) => {
 const loginMobileUser = asyncHandler(async (req, res) => {
     const { mobile, password } = req.body;
 
-     if (!mobile || !password) {
+    if (!mobile || !password) {
         return res.status(400).json(new APIResponse(400, {}, 'Mobile & Password Is Required!!!'));
     }
     const user = await User.findOne({ mobile });
@@ -772,7 +772,7 @@ const loginMobileUser = asyncHandler(async (req, res) => {
     if (!user) {
         return res.status(404).json(new APIResponse(404, {}, 'Account Not Found!!!'));
     }
-    
+
     const isPasswordValid = await user.isPasswordCorrect((password).toString());
 
     if (!isPasswordValid) {
@@ -828,7 +828,7 @@ const logoutMobileUser = asyncHandler(async (req, res) => {
 
 const getCurrentMobileUser = asyncHandler(async (req, res) => {
     try {
-        const userId = req.user.role === 'user' ? req.user._id : req.user.userId;
+        const userId = req.user.role === 'user' ? req.user._id : req.user._id;
 
         const user = await User.aggregate([
             {
@@ -839,7 +839,7 @@ const getCurrentMobileUser = asyncHandler(async (req, res) => {
             {
                 $lookup: {
                     from: 'userplans',
-                    localField: "_id",
+                    localField: req.user.role === 'user' ? '_id' : 'userId',
                     foreignField: 'userId',
                     as: 'userPlans',
                     pipeline: [
@@ -875,7 +875,9 @@ const getCurrentMobileUser = asyncHandler(async (req, res) => {
             { $unwind: { path: "$userPlans.planDetails", preserveNullAndEmptyArrays: true } },
             {
                 $project: {
-                    address: 0,
+                    state: 0,
+                    district: 0,
+                    taluka: 0,
                     password: 0,
                     createdAt: 0,
                     updatedAt: 0,

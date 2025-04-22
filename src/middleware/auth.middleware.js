@@ -19,7 +19,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     try {
         let token = extractToken(req);
         const refreshToken = req.cookies?.refreshToken;
-        
+
         if (!token && !refreshToken) {
             return handleError(res, 401, "Unauthorized Request. Login Again");
         }
@@ -27,7 +27,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
         if (token) {
             const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
             const admin = await Admin.findById(decodedToken._id).select('-password -refreshToken');
-            
+
 
             if (!admin) {
                 return handleError(res, 403, "Invalid or expired token");
@@ -68,12 +68,12 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 });
 
 export const authorize = (requiredPermissions = []) => {
-    
+
     return (req, res, next) => {
-        
+
         const { role, permissions } = req.admin;
-        
-        if (role === 'superadmin' || role==='admin') {
+
+        if (role === 'superadmin' || role === 'admin') {
             return next(); // Super admin has unrestricted access
         }
 
@@ -83,12 +83,12 @@ export const authorize = (requiredPermissions = []) => {
             }
             return next(); // Admin has all other access
         }
-         
+
         if (role === 'user') {
             const hasPermissions = requiredPermissions.some((permission) =>
                 permissions.includes(permission)
             );
-            
+
             if (!hasPermissions) {
                 return handleError(res, 403, 'Access Denied. Require Permission to Access!!!');
             }

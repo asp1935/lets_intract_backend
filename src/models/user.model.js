@@ -63,7 +63,7 @@ const userSchema = new Schema({
         ref: 'User',  // Reference to the Admin (Self-referencing)
         default: null
     },
-    email: {
+    email: {   
         type: String,
         // unique: true,
         lowercase: true,

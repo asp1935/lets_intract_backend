@@ -11,7 +11,7 @@ const addPlan = asyncHandler(async (req, res) => {
         return res.status(400).json(new APIResponse(400, {}, errors['errors'][0].msg));
     }
 
-    const { name, price, validity, smsAPIService, whatsappAPIService, smsCount, userSMSCount, addMembers,type } = req.body;
+    const { name, price, validity, smsAPIService, whatsappAPIService, smsCount, userSMSCount, addMembers, type } = req.body;
 
 
     //  Manual validation inside the controller
@@ -41,7 +41,7 @@ const addPlan = asyncHandler(async (req, res) => {
 
 
     // Check if the plan already exists
-    const existingPlan = await Plan.findOne({ name });
+    const existingPlan = await Plan.findOne({ name, type });
     if (existingPlan) {
         return res.status(400).json(new APIResponse(400, {}, "Plan with this name already exists"));
     }
@@ -98,7 +98,7 @@ const updatePlan = asyncHandler(async (req, res) => {
     if (!errors.isEmpty()) {
         return res.status(400).json(new APIResponse(400, {}, errors['errors'][0].msg));
     }
-    const { name, price, validity, smsAPIService, whatsappAPIService, smsCount, userSMSCount, addMembers,type } = req.body;
+    const { name, price, validity, smsAPIService, whatsappAPIService, smsCount, userSMSCount, addMembers, type } = req.body;
 
     const planId = req.params.id;
 
@@ -122,7 +122,7 @@ const updatePlan = asyncHandler(async (req, res) => {
             type
         }, { new: true });
 
-        
+
     if (!updatedPlan) {
         return res.status(500).json(new APIResponse(500, {}, 'Plan Not Found'))
     }
