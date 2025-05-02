@@ -1,9 +1,12 @@
-import { Enquiry } from "../models/enquiry.model.js";             
+import { Enquiry } from "../models/enquiry.model.js";
 import { Otp } from "../models/otp.model.js";
+import { SmsApi } from "../models/smsApi.model.js";
+import { Templete } from "../models/templetes.model.js";
 import { User } from "../models/user.model.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import crypto from 'crypto';
+import axios from 'axios'
 
 // Generate Random OTP (4 )
 const generateOtp = () => crypto.randomInt(1000, 9999).toString();
@@ -37,10 +40,41 @@ const sendOpt = asyncHandler(async (req, res) => {
 
         // Simulate sending OTP (Replace with actual SMS logic)
         console.log(`OTP for ${mobile} is: ${otp}`);
+        const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
+        if (!api) {
+            return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
+        }
+        const templeteData = await Templete.findOne({ templeteName: 'otp' });
+        if (!templeteData) {
+            return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
+        }
+        const message = templeteData.templete.replace("${otp}", otp);
+        const params = new URLSearchParams({
+            apiKey: api.apiKey,
+            senderid: api.senderId,
+            channel: api.channel,
+            DCS: api.dcs,
+            flashsms: "0",
+            number: mobile,
+            text: message
 
-        res.status(200).json(new APIResponse(200, { otp }, "OTP sent successfully."));
+        });
+
+        const fullUrl = `${api.apiUrl}?${params.toString()}`;
+
+        try {
+            const response = await axios.get(fullUrl);
+            console.log(response.status);
+            
+        } catch (error) {
+            console.log(error.message);
+            
+        }
+
+
+        return res.status(200).json(new APIResponse(200, { otp }, "OTP sent successfully."));
     } catch (error) {
-        res.status(500).json(new APIResponse(500, {}, "Error sending OTP.", error));
+        return res.status(500).json(new APIResponse(500, {}, "Error sending OTP.", error));
     }
 });
 

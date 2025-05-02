@@ -94,6 +94,8 @@ import enquiryRouter from './routes/enquiry.route.js';
 import otpRouter from './routes/otp.route.js';
 import planPurchaseHistoryRouter from './routes/planPurchaseHistory.route.js';
 import userPortfolioRouter from './routes/userPortfolio.route.js';
+import templeteRouter from './routes/templete.route.js';
+import smsApiRouter from './routes/smsApi.route.js';
 
 /* 
  * Defining Routes:
@@ -117,6 +119,9 @@ app.use('/api/v1/history', historyRouter);
 app.use('/api/v1/enquiry', enquiryRouter);
 app.use('/api/v1/otp', otpRouter);
 app.use('/api/v1/planpurchase', planPurchaseHistoryRouter);
-app.use('/api/v1/portfolio',userPortfolioRouter);
+app.use('/api/v1/portfolio', userPortfolioRouter);
+app.use('/api/v1/templete', templeteRouter);
+app.use('/api/v1/smsapi', smsApiRouter);
+
 // Export the app instance for use in other modules
 export { app };
