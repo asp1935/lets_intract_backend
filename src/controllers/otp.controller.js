@@ -40,35 +40,39 @@ const sendOpt = asyncHandler(async (req, res) => {
 
         // Simulate sending OTP (Replace with actual SMS logic)
         console.log(`OTP for ${mobile} is: ${otp}`);
-        const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
-        if (!api) {
-            return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
-        }
-        const templeteData = await Templete.findOne({ templeteName: 'otp' });
-        if (!templeteData) {
-            return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
-        }
-        const message = templeteData.templete.replace("${otp}", otp);
-        const params = new URLSearchParams({
-            apiKey: api.apiKey,
-            senderid: api.senderId,
-            channel: api.channel,
-            DCS: api.dcs,
-            flashsms: "0",
-            number: mobile,
-            text: message
+        console.log(process.env.OTP_API);
 
-        });
+        if (process.env.OTP_API === 'true') {
+            const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
+            if (!api) {
+                return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
+            }
+            const templeteData = await Templete.findOne({ templeteName: 'otp' });
+            if (!templeteData) {
+                return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
+            }
+            const message = templeteData.templete.replace("${otp}", otp);
+            const params = new URLSearchParams({
+                apiKey: api.apiKey,
+                senderid: api.senderId,
+                channel: api.channel,
+                DCS: api.dcs,
+                flashsms: "0",
+                number: mobile,
+                text: message
 
-        const fullUrl = `${api.apiUrl}?${params.toString()}`;
+            });
 
-        try {
-            const response = await axios.get(fullUrl);
-            console.log(response.status);
-            
-        } catch (error) {
-            console.log(error.message);
-            
+            const fullUrl = `${api.apiUrl}?${params.toString()}`;
+
+            try {
+                const response = await axios.get(fullUrl);
+                console.log(response.status);
+
+            } catch (error) {
+                console.log(error.message);
+
+            }
         }
 
 
