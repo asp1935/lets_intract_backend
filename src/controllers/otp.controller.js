@@ -40,42 +40,38 @@ const sendOpt = asyncHandler(async (req, res) => {
 
         // Simulate sending OTP (Replace with actual SMS logic)
         console.log(`OTP for ${mobile} is: ${otp}`);
-        console.log(process.env.OTP_API);
 
-        if (process.env.OTP_API === 'true') {
-            const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
-            if (!api) {
-                return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
-            }
-            const templeteData = await Templete.findOne({ templeteName: 'otp' });
-            if (!templeteData) {
-                return res.status(500).json(new APIResponse(500, {}, "Something went wrong while Sending OTP"));
-            }
-            const message = templeteData.templete.replace("${otp}", otp);
-            const params = new URLSearchParams({
-                apiKey: api.apiKey,
-                senderid: api.senderId,
-                channel: api.channel,
-                DCS: api.dcs,
-                flashsms: "0",
-                number: mobile,
-                text: message
-
-            });
-
-            const fullUrl = `${api.apiUrl}?${params.toString()}`;
-
+        if (process.env.OTP_SMS === 'true') {
             try {
-                const response = await axios.get(fullUrl);
-                console.log(response.status);
+                const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
+                const templeteData = await Templete.findOne({ templeteName: 'otp' });
 
+                if (api && templeteData) {
+
+                    const message = templeteData.templete.replace("${otp}", otp);
+                    const params = new URLSearchParams({
+                        apiKey: api.apiKey,
+                        senderid: api.senderId,
+                        channel: api.channel,
+                        DCS: api.dcs,
+                        flashsms: "0",
+                        number: mobile,
+                        text: message
+
+                    });
+
+                    const fullUrl = `${api.apiUrl}?${params.toString()}`;
+
+                    const response = await axios.get(fullUrl);
+                    console.log(response.status);
+
+                } else {
+                    console.log("API or Template not found, skipping SMS");
+                }
             } catch (error) {
-                console.log(error.message);
-
+                console.log("Error sending SMS:", error.message);
             }
         }
-
-
         return res.status(200).json(new APIResponse(200, { otp }, "OTP sent successfully."));
     } catch (error) {
         return res.status(500).json(new APIResponse(500, {}, "Error sending OTP.", error));

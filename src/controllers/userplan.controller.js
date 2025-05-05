@@ -5,6 +5,8 @@ import { User } from "../models/user.model.js";
 import { UserPlan } from "../models/userplan.model.js";
 import { Plan } from "../models/plan.model.js";
 import { PlanPurchaseHistory } from "../models/planPurchaseHistory.model.js";
+import { Templete } from "../models/templetes.model.js";
+import { SmsApi } from "../models/smsApi.model.js";
 
 const updateUserPlan = asyncHandler(async (req, res) => {
     const { userId, planId, startDate, usedMsgCount = 0 } = req.body;
@@ -58,6 +60,34 @@ const updateUserPlan = asyncHandler(async (req, res) => {
         purchaseDate: new Date()
     });
 
+    // SMS sending (optional and skipped on error)
+    if (process.env.REGISTER_SMS === 'true') {
+        try {
+            const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
+            const templeteData = await Templete.findOne({ templeteName: 'register' });
+
+            if (api && templeteData) {
+
+                const message = templeteData.templete.replace("${name}", user.name).replace("${price}",plan.price);
+                const params = new URLSearchParams({
+                    apiKey: api.apiKey,
+                    senderid: api.senderId,
+                    channel: api.channel,
+                    DCS: api.dcs,
+                    flashsms: "0",
+                    number: "7249427235",
+                    text: message
+                });
+
+                const fullUrl = `${api.apiUrl}?${params.toString()}`;
+                await axios.get(fullUrl); // Log or handle response if needed
+            } else {
+                console.log("API or Template not found, skipping SMS");
+            }
+        } catch (error) {
+            console.log("Error sending SMS:", error.message);
+        }
+    }
     return res.status(200).json(new APIResponse(200, userplan, 'User Plan Updated Successfully'));
 });
 

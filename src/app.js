@@ -17,11 +17,16 @@ const app = express();
 // }));
 const allowedOrigins = [
     process.env.CORS_ORIGIN,  // e.g., "https://yourwebsite.com"
-    "http://localhost:5173",  // For local development
-    "http://10.0.2.2",  // Android Emulator (access backend running on localhost)
-    "capacitor://localhost",  // For Capacitor-based apps
-    "ionic://localhost",  // For Ionic-based apps (if using)
+
 ];
+app.use((err, req, res, next) => {
+    if (err.message === 'Not allowed by CORS') {
+        res.status(403).json({ message: 'CORS Error: This origin is not allowed.' });
+    } else {
+        // Handle other types of errors
+        res.status(500).json({ message: 'Internal Server Error', error: err.message });
+    }
+});
 
 // Dynamic CORS Middleware
 app.use(cors({

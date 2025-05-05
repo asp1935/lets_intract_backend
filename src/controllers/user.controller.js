@@ -92,6 +92,33 @@ const registerUser = asyncHandler(async (req, res) => {
     if (!createdUser) {
         return res.status(500).json(new APIResponse(500, {}, 'Something went wrong while Creating User'));
     }
+    if (process.env.WELCOME_SMS === 'true') {
+        try {
+            const api = await SmsApi.findOne().select("apiUrl apiKey senderId channel dcs");
+            const templeteData = await Templete.findOne({ templeteName: 'welcome' });
+
+            if (api && templeteData) {
+
+                const message = templeteData.templete.replace("${name}", createdUser.name);
+                const params = new URLSearchParams({
+                    apiKey: api.apiKey,
+                    senderid: api.senderId,
+                    channel: api.channel,
+                    DCS: api.dcs,
+                    flashsms: "0",
+                    number: createdUser.mobile,
+                    text: message
+                });
+
+                const fullUrl = `${api.apiUrl}?${params.toString()}`;
+                await axios.get(fullUrl); // Log or handle response if needed
+            } else {
+                console.log("API or Template not found, skipping SMS");
+            }
+        } catch (error) {
+            console.log("Error sending SMS:", error.message);
+        }
+    }
 
     // Send success response with the created user details
     return res.status(201).json(new APIResponse(200, createdUser, "User Registered Successfully"));
@@ -845,7 +872,7 @@ const getCurrentMobileUser = asyncHandler(async (req, res) => {
                     pipeline: [
                         {
                             $project: {
-                                startDate: 1,  
+                                startDate: 1,
                                 endDate: 1,
                                 usedMsgCount: 1,
                                 planId: 1,
