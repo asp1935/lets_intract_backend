@@ -78,7 +78,17 @@ const sendOpt = asyncHandler(async (req, res) => {
     }
 });
 
+const getOPT = asyncHandler(async (req, res) => {
+    try {
+        const otps = await Otp.find().sort({ createdAt: -1 });;
+        return res.status(200).json(new APIResponse(200, otps, "All OTP Fetched"))
+    } catch (error) {
+        return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"))
+    }
+})
+
 
 export {
-    sendOpt
+    sendOpt,
+    getOPT
 }

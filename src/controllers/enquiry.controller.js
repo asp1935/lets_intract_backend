@@ -5,8 +5,8 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { Otp } from "../models/otp.model.js";
 
 const addEnquiry = asyncHandler(async (req, res) => {
-    const { name, mobile, email, state, district, taluka, password, cpassword, otp } = req.body;
-    if ([name, email, state, district, taluka, password, cpassword, otp].some(field => String(field || '').trim() === '')) {
+    const { name, mobile, state, district, taluka, password, cpassword, otp } = req.body;
+    if ([name, state, district, taluka, password, cpassword, otp].some(field => String(field || '').trim() === '')) {
         return res.status(400).json(new APIResponse(400, {}, 'All fields are required'));
     }
     if (!/^[0-9]{10}$/.test(mobile)) {
@@ -16,7 +16,7 @@ const addEnquiry = asyncHandler(async (req, res) => {
         return res.status(400).json(new APIResponse(400, {}, "Password and confirm password must be the same."))
     }
     //check email already exist
-    const existingEnquiry = await Enquiry.exists({ $or: [{ email }, { mobile }] });
+    const existingEnquiry = await Enquiry.exists({ mobile });
     if (existingEnquiry) {
         return res.status(409).json(new APIResponse(409, {}, 'Registration Already Done Support Team Connect you as soon as Possible'));
     }
@@ -45,7 +45,6 @@ const addEnquiry = asyncHandler(async (req, res) => {
     //store into db
     const enquiry = await Enquiry.create({
         name,
-        email,
         mobile,
         state,
         district,
