@@ -10,7 +10,7 @@ const upsertMessage = asyncHandler(async (req, res) => {
     const { message } = req.body || null;
     const imgFilePath = req.file?.path || null;
     let imageBase64 = null;
-    
+
 
     if (!userId || !isValidObjectId(userId)) {
         return res.status(400).json(new APIResponse(400, {}, 'Invalid User ID'));
@@ -31,8 +31,8 @@ const upsertMessage = asyncHandler(async (req, res) => {
     if (imageBase64) {
         updateObj.whatsappImg = imageBase64;
     }
-    
-    
+
+
     const userMessage = await UserMessage.findOneAndUpdate(
         { userId },
         {
@@ -51,15 +51,15 @@ const getUserMessage = asyncHandler(async (req, res) => {
         return res.status(400).json(new APIResponse(400, {}, "Invalid User ID"));
     }
 
-    const userMessage = await UserMessage.findOne({ userId });
+    const userMessage = await UserMessage.find({ userId });
 
-    if (!userMessage) {
-        return res.status(404).json(new APIResponse(404, {}, "No User Message Found"));
+    if (!userMessage || userMessage.length === 0) {
+        return res.status(200).json(new APIResponse(200, {}, "No User Message Found"));
     }
 
     const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName');
 
-    let portfolioLink = process.env.CORS_ORIGINqw || 'http://www.letsinteract.com';
+    let portfolioLink = process.env.CORS_ORIGI || 'http://www.letsinteract.com';
     if (portfolioUsername) {
         portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
     } else {
@@ -67,12 +67,17 @@ const getUserMessage = asyncHandler(async (req, res) => {
     }
 
     // Append to the single object
-    const result = {
-        ...userMessage.toObject(), // Convert Mongoose doc to plain object
-        portfolioLink,
-    };
+    // const result = {
+    //     ...userMessage.toObject(), // Convert Mongoose doc to plain object
+    //     portfolioLink,
+    // };
 
-    return res.status(200).json(new APIResponse(200, result, "User Message Fetched Successfully"));
+    if (userMessage.length > 0) {
+        userMessage[0] = userMessage[0].toObject(); // Convert Mongoose document to plain object
+        userMessage[0].portfolioLink = portfolioLink;
+    }
+
+    return res.status(200).json(new APIResponse(200, userMessage, "User Message Fetched Successfully"));
 });
 
 
