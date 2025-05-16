@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { APIResponse } from "../utils/APIResponse.js";
 import fs from 'fs';
 import { UserMessage } from "../models/userMessage.model.js";
+import { UserPortfolio } from "../models/userPortfolio.model.js";
 
 const upsertMessage = asyncHandler(async (req, res) => {
     const userId = req.user._id;
@@ -44,19 +45,36 @@ const upsertMessage = asyncHandler(async (req, res) => {
 });
 
 const getUserMessage = asyncHandler(async (req, res) => {
-    // const userId=req.user?._id;
     const userId = req.user?.role === 'user' ? req.user._id : req.user?.role === 'member' ? req.user.userId : null;
 
     if (!userId || !isValidObjectId(userId)) {
-        return res.status(400).json(new APIResponse(400, {}, "Invalid User ID"))
+        return res.status(400).json(new APIResponse(400, {}, "Invalid User ID"));
     }
-    const userMessage = await UserMessage.find({ userId });
+
+    const userMessage = await UserMessage.findOne({ userId });
 
     if (!userMessage) {
         return res.status(404).json(new APIResponse(404, {}, "No User Message Found"));
     }
-    return res.status(200).json(new APIResponse(200, userMessage, "User Message Fetched Successfully"));
-})
+
+    const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName');
+
+    let portfolioLink = process.env.CORS_ORIGINqw || 'http://www.letsinteract.com';
+    if (portfolioUsername) {
+        portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
+    } else {
+        portfolioLink = null;
+    }
+
+    // Append to the single object
+    const result = {
+        ...userMessage.toObject(), // Convert Mongoose doc to plain object
+        portfolioLink,
+    };
+
+    return res.status(200).json(new APIResponse(200, result, "User Message Fetched Successfully"));
+});
+
 
 // const getUserMessageMember=asyncHandler(async(req,res)=>{
 //     const userId=req.member.userId;
