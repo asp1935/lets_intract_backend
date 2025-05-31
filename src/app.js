@@ -101,6 +101,7 @@ import planPurchaseHistoryRouter from './routes/planPurchaseHistory.route.js';
 import userPortfolioRouter from './routes/userPortfolio.route.js';
 import templeteRouter from './routes/templete.route.js';
 import smsApiRouter from './routes/smsApi.route.js';
+import addressRouter from './routes/address.route.js';
 
 /* 
  * Defining Routes:
@@ -127,6 +128,8 @@ app.use('/api/v1/planpurchase', planPurchaseHistoryRouter);
 app.use('/api/v1/portfolio', userPortfolioRouter);
 app.use('/api/v1/templete', templeteRouter);
 app.use('/api/v1/smsapi', smsApiRouter);
+app.use('/api/v1/address',addressRouter);
+
 
 // Export the app instance for use in other modules
 export { app };

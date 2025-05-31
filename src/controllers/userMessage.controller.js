@@ -59,7 +59,7 @@ const getUserMessage = asyncHandler(async (req, res) => {
 
     const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName');
 
-    let portfolioLink = process.env.CORS_ORIGI || 'http://www.letsinteract.com';
+    let portfolioLink = process.env.PORTFOLIO_URL;
     if (portfolioUsername) {
         portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
     } else {
@@ -71,11 +71,13 @@ const getUserMessage = asyncHandler(async (req, res) => {
     //     ...userMessage.toObject(), // Convert Mongoose doc to plain object
     //     portfolioLink,
     // };
-
+    
     if (userMessage.length > 0) {
         userMessage[0] = userMessage[0].toObject(); // Convert Mongoose document to plain object
         userMessage[0].portfolioLink = portfolioLink;
     }
+
+
 
     return res.status(200).json(new APIResponse(200, userMessage, "User Message Fetched Successfully"));
 });
