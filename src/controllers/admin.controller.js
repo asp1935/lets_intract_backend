@@ -162,12 +162,11 @@ const loginAdmin = asyncHandler(async (req, res) => {
     // Generate tokens
     const { refreshToken, accessToken } = await genrateAccessAndRefreshToken(admin._id);
 
-    const isProd = process.env.NODE_ENV === 'production';
     // Cookie options
     const options = {
         httpOnly: true,
         secure: false, // Enable secure cookies in production
-        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
+        sameSite: 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
     // Set cookies with appropriate expiration times
@@ -195,14 +194,13 @@ const logoutAdmin = asyncHandler(async (req, res) => {
         { new: true }
     );
 
-    const isProd = process.env.NODE_ENV == 'production';
-    console.log(isProd,process.env.NODE_ENV);
+
     
     // Cookie options
     const options = {
         httpOnly: true,
         secure: false, // Enable secure cookies in production
-        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
+        sameSite: 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
     // Clear tokens and send response

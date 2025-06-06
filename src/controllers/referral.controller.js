@@ -8,7 +8,6 @@ import { Referral } from "../models/referral.model.js";
 
 const addReferral = asyncHandler(async (req, res) => {
     const { id, userId } = req.body;
-    console.log(id,userId);
     
     if (!isValidObjectId(id) || !isValidObjectId(userId)) {
         return res.status(400).json(new APIResponse(400, {}, "Invalid Associate ID or User Id"))
