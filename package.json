@@ -7,7 +7,7 @@
             "test": "echo \"Error: no test specified\" && exit 1",
             "dev": "nodemon -r dotenv/config src/server.js",
             "build": "node build.js",
-            "start": "node dist/server.js"
+            "start": " node -r dotenv/config src/server.js"
       },
       "author": "",
       "license": "ISC",
