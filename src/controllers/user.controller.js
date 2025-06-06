@@ -809,13 +809,12 @@ const loginMobileUser = asyncHandler(async (req, res) => {
     const accessToken = await genrateUserAccessToken(user._id);
 
     const loggedInUser = await User.findById(user._id).select('-password')
-  const isProd = process.env.NODE_ENV === 'production';
 
     // Cookie options
     const options = {
         httpOnly: true,
         secure: false, // Enable secure cookies in production
-        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
+        sameSite: 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };0
 
     const accessTokenOptions = {
@@ -841,13 +840,12 @@ const loginMobileUser = asyncHandler(async (req, res) => {
 
 const logoutMobileUser = asyncHandler(async (req, res) => {
 
- const isProd = process.env.NODE_ENV === 'production';
 
     // Cookie options
     const options = {
         httpOnly: true,
         secure: false, // Enable secure cookies in production
-        sameSite: isProd ? 'None' : 'Lax', // Prevent CSRF attacks(strict opyion   ) 
+        sameSite: 'Lax', // Prevent CSRF attacks(strict opyion   ) 
     };
 
     return res
