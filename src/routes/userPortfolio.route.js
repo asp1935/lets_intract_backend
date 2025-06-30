@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { authAdmin, authorize, verifyJWT } from "../middleware/auth.middleware.js";
-import { addPortfolioClient, addPortfolioGallery, addPortfolioServices, deletePortfolioItem, getPortfolio, getUserPortfolio, createUserPortfolio, updateUserPortfolio, deletePortfolio, updateUserProfile } from "../controllers/userPortfolio.controller.js";
+import { addPortfolioClient, addPortfolioGallery, addPortfolioServices, deletePortfolioItem, getPortfolio, getUserPortfolio, createUserPortfolio, updateUserPortfolio, deletePortfolio, updateUserProfile, updateIncludeLink } from "../controllers/userPortfolio.controller.js";
 import { portfolioUpload } from "../middleware/portfolioMulter.middleware.js";
 
 const router = Router()
@@ -19,6 +19,8 @@ router.route('/delete-portfolio-item').delete(verifyJWT,authorize(['portfolio'])
 router.route('/get-portfolio').get(verifyJWT, authorize(['portfolio']), getPortfolio);
 router.route('/delete-portfolio/:pid').delete(verifyJWT,authorize(['portfolio']), deletePortfolio);
 router.route('/user-portfolio/:userName').get(getUserPortfolio);
+router.route('/update-include-link/:pid').patch(verifyJWT,authorize(['portfolio']), updateIncludeLink);
+
 
 export default router;
 

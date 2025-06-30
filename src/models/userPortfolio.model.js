@@ -14,6 +14,11 @@ const userPortfolioSchema = new Schema({
         unique: true,
         index: true,
     },
+    includeLink: {
+        type: Boolean,
+        required: true,
+        default:false
+    },
     name: {
         type: String,
         required: true

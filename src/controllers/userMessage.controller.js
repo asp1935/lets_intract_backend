@@ -57,21 +57,26 @@ const getUserMessage = asyncHandler(async (req, res) => {
         return res.status(200).json(new APIResponse(200, {}, "No User Message Found"));
     }
 
-    const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName');
+    const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName includeLink');
 
-    let portfolioLink = process.env.PORTFOLIO_URL;
-    if (portfolioUsername) {
-        portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
-    } else {
-        portfolioLink = null;
+    let portfolioLink='null';
+
+    if (portfolioUsername.includeLink) {
+        portfolioLink = process.env.PORTFOLIO_URL;
+        if (portfolioUsername) {
+            portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
+        } else {
+            portfolioLink = null;
+        }
     }
+    
 
     // Append to the single object
     // const result = {
     //     ...userMessage.toObject(), // Convert Mongoose doc to plain object
     //     portfolioLink,
     // };
-    
+
     if (userMessage.length > 0) {
         userMessage[0] = userMessage[0].toObject(); // Convert Mongoose document to plain object
         userMessage[0].portfolioLink = portfolioLink;

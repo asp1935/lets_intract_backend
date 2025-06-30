@@ -67,7 +67,7 @@ const createUserPortfolio = asyncHandler(async (req, res) => {
         //  Use upsert to insert if not exists, otherwise update
         const portfolio = await UserPortfolio.create(
             {
-                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl, socialLinks: links
+                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl, socialLinks: links, includeLink: false
             },
         );
 
@@ -430,6 +430,36 @@ const deletePortfolio = asyncHandler(async (req, res) => {
     }
 });
 
+//include portfolio link in msg
+const updateIncludeLink = asyncHandler(async (req, res) => {
+    try {
+        const { pid } = req.params;
+        const { includeLink } = req.body;
+
+        if (!isValidObjectId(pid)) {
+            return res.status(400).json(new APIResponse(400, {}, 'Invalid Portfolio ID'));
+        }
+
+        if (typeof includeLink !== 'boolean') {
+            return res.status(400).json(new APIResponse(400, {}, 'Invalid Status'));
+        }
+
+        const portfolio = await UserPortfolio.findById(pid);
+        if (!portfolio) {
+            return res.status(404).json(new APIResponse(404, {}, 'Portfolio Not Found'));
+        }
+
+        
+
+        portfolio.includeLink = includeLink;
+        await portfolio.save();
+
+        return res.status(200).json(new APIResponse(200, portfolio, 'Portfolio Include Link Status Updated'));
+    } catch (error) {
+        return res.status(500).json(new APIResponse(500, {}, 'Something went wrong while updating link status'));
+    }
+});
+
 
 export {
     createUserPortfolio,
@@ -441,5 +471,6 @@ export {
     deletePortfolioItem,
     getPortfolio,
     getUserPortfolio,
-    deletePortfolio
+    deletePortfolio,
+    updateIncludeLink
 }
