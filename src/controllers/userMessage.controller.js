@@ -59,9 +59,9 @@ const getUserMessage = asyncHandler(async (req, res) => {
 
     const portfolioUsername = await UserPortfolio.findOne({ userId }).select('userName includeLink');
 
-    let portfolioLink='null';
+    let portfolioLink = 'null';
 
-    if (portfolioUsername.includeLink) {
+    if (portfolioUsername && portfolioUsername.includeLink) {
         portfolioLink = process.env.PORTFOLIO_URL;
         if (portfolioUsername) {
             portfolioLink = `${portfolioLink}/portfolio/${portfolioUsername.userName}`;
@@ -69,7 +69,7 @@ const getUserMessage = asyncHandler(async (req, res) => {
             portfolioLink = null;
         }
     }
-    
+
 
     // Append to the single object
     // const result = {
