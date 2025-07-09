@@ -7,7 +7,6 @@ const portfolioStorage = multer.diskStorage({
   destination: async (req, file, cb) => {
     try {
       const userID = req.params.userId || req.body.userId;  // Get userID from request
-      
       const userFolder = `public/portfolio/${userID}`; // Create folder per user
 
       // Ensure the user-specific folder exists
@@ -20,6 +19,7 @@ const portfolioStorage = multer.diskStorage({
     }
   },
   filename: (req, file, cb) => {
+    
     // Generate a unique filename using timestamp and file extension
     cb(null, Date.now() + path.extname(file.originalname));
   },

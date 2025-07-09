@@ -162,7 +162,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
 
     }
-})
+});
 
 
 const addPortfolioServices = asyncHandler(async (req, res) => {
@@ -449,7 +449,7 @@ const updateIncludeLink = asyncHandler(async (req, res) => {
             return res.status(404).json(new APIResponse(404, {}, 'Portfolio Not Found'));
         }
 
-        
+
 
         portfolio.includeLink = includeLink;
         await portfolio.save();
@@ -459,6 +459,189 @@ const updateIncludeLink = asyncHandler(async (req, res) => {
         return res.status(500).json(new APIResponse(500, {}, 'Something went wrong while updating link status'));
     }
 });
+
+// const addPaymentDetails = asyncHandler(async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { bankName, accountHolderName, accountNo, ifscNo, gstinNo } = req.body;
+
+//         if (!id || !isValidObjectId(id)) {
+//             if (req.file?.path) fs.unlinkSync(req.file.path);
+//             return res.status(400).json(new APIResponse(400, {}, "Invalid ID"));
+//         }
+
+//         const portfolio = await UserPortfolio.findById(id);
+//         if (!portfolio) {
+//             if (req.file?.path) fs.unlinkSync(req.file.path);
+//             return res.status(404).json(new APIResponse(404, {}, "Portfolio Not Created Yet"));
+//         }
+
+//         const qrcodeImage = req.file?.path
+//             ? `/public/portfolio/${portfolio.userId.toString()}/${req.file.filename}`
+//             : "";
+
+
+//         if (!qrcodeImage) {
+//             return res.status(400).json(new APIResponse(400, {}, "QR Code is Required"));
+//         }
+
+//         if ([bankName, accountHolderName, accountNo, ifscNo, gstinNo].some(field => String(field || '').trim() === '')) {
+//             if (req.file?.path) fs.unlinkSync(req.file.path);
+//             return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
+//         }
+
+//         //  Update payment details
+//         portfolio.paymentDetails = {
+//             qrcodeImage,
+//             bankName,
+//             accountHolderName,
+//             accountNo,
+//             ifscNo,
+//             gstinNo
+//         };
+
+//         await portfolio.save();
+
+//         return res.status(200).json(new APIResponse(200, portfolio, 'Payment details added successfully.'));
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json(new APIResponse(500, {}, 'Internal Server Error'));
+//     }
+// });
+
+// const updatePaymentDetails = asyncHandler(async (req, res) => {
+//     try {
+//         const { id } = req.params;
+//         const { bankName, accountHolderName, accountNo, ifscNo, gstinNo } = req.body;
+
+//         if (!id || !isValidObjectId(id)) {
+//             return res.status(400).json(new APIResponse(400, {}, "Invalid ID"));
+//         }
+
+//         const portfolio = await UserPortfolio.findById(id);
+//         if (!portfolio) {
+//             return res.status(404).json(new APIResponse(404, {}, "Portfolio Not Found"));
+//         }
+
+
+//         // Update fields only if provided
+//         portfolio.paymentDetails = {
+//             bankName: bankName || portfolio.paymentDetails?.bankName || "",
+//             accountHolderName: accountHolderName || portfolio.paymentDetails?.accountHolderName || "",
+//             accountNo: accountNo || portfolio.paymentDetails?.accountNo || "",
+//             ifscNo: ifscNo || portfolio.paymentDetails?.ifscNo || "",
+//             gstinNo: gstinNo || portfolio.paymentDetails?.gstinNo || "",
+//         };
+
+//         await portfolio.save();
+
+//         return res.status(200).json(new APIResponse(200, portfolio, "Payment details updated successfully."));
+//     } catch (error) {
+//         console.error(error);
+//         return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
+//     }
+// });
+
+
+
+const upsertPaymentDetails = asyncHandler(async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const { bankName, accountHolderName, accountNo, ifscNo, gstinNo } = req.body;
+
+        if (!id || !isValidObjectId(id)) {
+            if (req.file?.path) fs.unlinkSync(req.file.path);
+            return res.status(400).json(new APIResponse(400, {}, "Invalid ID"));
+        }
+
+        const portfolio = await UserPortfolio.findById(id);
+        if (!portfolio) {
+            if (req.file?.path) fs.unlinkSync(req.file.path);
+            return res.status(404).json(new APIResponse(404, {}, "Portfolio Not Found"));
+        }
+
+        // Build new QR code path if uploaded
+        let qrcodeImage = portfolio.paymentDetails?.qrcodeImage || "";
+
+        if (req.file?.path) {
+            // If there's an old QR, delete it:
+            if (qrcodeImage) {
+                const oldQRPath = path.join(process.cwd(), qrcodeImage);
+                if (fs.existsSync(oldQRPath)) {
+                    fs.unlinkSync(oldQRPath);
+                }
+            }
+
+            // Use userId for folder structure, not _id
+            qrcodeImage = `/public/portfolio/${portfolio.userId.toString()}/${req.file.filename}`;
+        }
+
+        // If adding for the first time, ensure QR is required:
+        if (!portfolio.paymentDetails && !qrcodeImage) {
+            return res.status(400).json(new APIResponse(400, {}, "QR Code is Required"));
+        }
+
+        // If any required field is missing when adding new
+        if (!portfolio.paymentDetails && [bankName, accountHolderName, accountNo, ifscNo, gstinNo].some(field => String(field || '').trim() === '')) {
+            if (req.file?.path) fs.unlinkSync(req.file.path);
+            return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
+        }
+
+        // Upsert: keep old or use new
+        portfolio.paymentDetails = {
+            qrcodeImage,
+            bankName: bankName || portfolio.paymentDetails?.bankName || "",
+            accountHolderName: accountHolderName || portfolio.paymentDetails?.accountHolderName || "",
+            accountNo: accountNo || portfolio.paymentDetails?.accountNo || "",
+            ifscNo: ifscNo || portfolio.paymentDetails?.ifscNo || "",
+            gstinNo: gstinNo || portfolio.paymentDetails?.gstinNo || "",
+        };
+
+        await portfolio.save();
+
+        return res.status(200).json(new APIResponse(200, portfolio, "Payment details saved successfully."));
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
+    }
+});
+
+
+const deletePaymentDetails = asyncHandler(async (req, res) => {
+    try {
+        const { id } = req.params;
+        // const { userId } = req.body
+
+        if (!id || !isValidObjectId(id)) {
+            return res.status(400).json(new APIResponse(400, {}, "Invalid Portfolio Id"))
+        }
+
+        const portfolio = await UserPortfolio.findById(id);
+
+        if (!portfolio) {
+            return res.status(404).json(new APIResponse(404, {}, 'Portfolio Not Found'))
+        }
+
+
+        // Delete file if it exists
+        if (portfolio?.paymentDetails?.qrcodeImage) {
+            const filePath = path.join(__dirname, "..", "..", portfolio?.paymentDetails?.qrcodeImage);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+
+        portfolio.paymentDetails = {};
+        portfolio.save();
+
+        return res.status(200).json(new APIResponse(200, portfolio, "Payment Details Deleted Successfully"));
+
+    } catch (error) {
+        return res.status(500).json(new APIResponse(500, {}, "Internal Server Error"));
+
+    }
+})
 
 
 export {
@@ -472,5 +655,8 @@ export {
     getPortfolio,
     getUserPortfolio,
     deletePortfolio,
-    updateIncludeLink
+    updateIncludeLink,
+
+    upsertPaymentDetails,
+    deletePaymentDetails,
 }

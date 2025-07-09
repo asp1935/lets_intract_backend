@@ -17,7 +17,7 @@ const userPortfolioSchema = new Schema({
     includeLink: {
         type: Boolean,
         required: true,
-        default:false
+        default: false
     },
     name: {
         type: String,
@@ -57,6 +57,7 @@ const userPortfolioSchema = new Schema({
         instagram: { type: String },
         facebook: { type: String },
     },
+
     services: [
         {
             title: { type: String, required: true },
@@ -78,6 +79,15 @@ const userPortfolioSchema = new Schema({
             title: { type: String, required: true },
         },
     ],
+    paymentDetails: {
+        qrcodeImage: { type: String },
+        bankName: { type: String },
+        accountHolderName: { type: String },
+        accountNo: { type: String },
+        ifscNo: { type: String }, 
+        gstinNo: { type: String },
+    },
 });
 
 export const UserPortfolio = mongoose.model('UserPortfolio', userPortfolioSchema);
+ 

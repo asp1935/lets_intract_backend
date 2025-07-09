@@ -8,6 +8,9 @@ import fs from 'fs';
 import { Otp } from "../models/otp.model.js";
 import { Referral } from "../models/referral.model.js";
 import { StaffRef } from "../models/staffRef.model.js";
+import { UserMessage } from "../models/userMessage.model.js";
+import { UserPortfolio } from "../models/userPortfolio.model.js";
+import { UserPlan } from "../models/userplan.model.js";
 
 
 //this method for genrating refresh token and access token
@@ -488,7 +491,10 @@ const deleteUser = asyncHandler(async (req, res) => {
     // }
     //  Delete referrals linked to the user
     await Referral.deleteOne({ userId: id });
-    await StaffRef.deleteOne({ userId: id })
+    await StaffRef.deleteOne({ userId: id });
+    await UserPortfolio.deleteOne({ userId: id });
+    await UserPlan.deleteOne({userId:id});
+    await UserMessage.deleteOne({ userId: id });
 
     // Delete members associated with the user
     await User.deleteMany({ userId: id });
