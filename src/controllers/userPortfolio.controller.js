@@ -19,7 +19,7 @@ const genrateUsername = (name) => {
 
 const createUserPortfolio = asyncHandler(async (req, res) => {
     try {
-        const { userId, name, ownerName, about, email, mobile, address, theme, socialLinks } = req.body;
+        const { userId, name, ownerName, about, email, mobile, address, theme, socialLinks, addressUrl, companyUrl } = req.body;
 
         const profilePhotoUrl = req.file?.path ? `/public/portfolio/${userId}/${req.file?.filename}` : "";
         if (!profilePhotoUrl) {
@@ -67,7 +67,7 @@ const createUserPortfolio = asyncHandler(async (req, res) => {
         //  Use upsert to insert if not exists, otherwise update
         const portfolio = await UserPortfolio.create(
             {
-                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl, socialLinks: links, includeLink: false
+                userId, userName, name, ownerName, about, email, mobile, address, theme, profilePhotoUrl, socialLinks: links, includeLink: false, addressUrl: addressUrl?.trim(), companyUrl: companyUrl?.trim()
             },
         );
 
@@ -86,7 +86,7 @@ const updateUserPortfolio = asyncHandler(async (req, res) => {
             return res.status(400).json(new APIResponse(400, {}, "Invalid Portfolio ID"));
         }
 
-        const { userName, name, ownerName, about, email, mobile, address, theme, socialLinks } = req.body;
+        const { userName, name, ownerName, about, email, mobile, address, theme, socialLinks, addressUrl, companyUrl } = req.body;
 
         if ([userName, name, ownerName, about, email, address, theme].some(field => field?.trim() === '')) {
             return res.status(400).json(new APIResponse(400, {}, 'All Fields Are Required'));
@@ -111,7 +111,8 @@ const updateUserPortfolio = asyncHandler(async (req, res) => {
             portfolioId,
             {
                 userName: userName.toLowerCase(),
-                name, ownerName, about, email, mobile, address, theme, socialLinks
+                name, ownerName, about, email, mobile, address, theme, socialLinks,
+                addressUrl: addressUrl?.trim(), companyUrl: companyUrl?.trim()
             },
             { new: true }
         );

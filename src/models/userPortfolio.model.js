@@ -23,6 +23,9 @@ const userPortfolioSchema = new Schema({
         type: String,
         required: true
     },
+    companyUrl: {
+        type: String,
+    },
     ownerName: {
         type: String,
         required: true
@@ -48,6 +51,9 @@ const userPortfolioSchema = new Schema({
     address: {
         type: String,
         required: true
+    },
+    addressUrl: {
+        type: String,
     },
     theme: {
         type: String
@@ -84,10 +90,9 @@ const userPortfolioSchema = new Schema({
         bankName: { type: String },
         accountHolderName: { type: String },
         accountNo: { type: String },
-        ifscNo: { type: String }, 
+        ifscNo: { type: String },
         gstinNo: { type: String },
     },
 });
 
 export const UserPortfolio = mongoose.model('UserPortfolio', userPortfolioSchema);
- 
